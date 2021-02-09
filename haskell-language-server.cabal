@@ -312,7 +312,7 @@ executable haskell-language-server
     , ghcide
     , hashable
     , haskell-language-server
-    , haskell-lsp              ^>=0.23
+    , haskell-lsp              ==0.24.0
     , lens
     , regex-tdfa
     , hslogger

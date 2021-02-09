@@ -110,7 +110,7 @@ codeAction lsp state _ (TextDocumentIdentifier uri) _range CodeActionContext{_di
 
 mkCA :: T.Text -> [Diagnostic] -> WorkspaceEdit -> CAResult
 mkCA title diags edit =
-  CACodeAction $ CodeAction title (Just CodeActionQuickFix) (Just $ List diags) (Just edit) Nothing
+  CACodeAction $ CodeAction title (Just CodeActionQuickFix) (Just $ List diags) (Just edit) Nothing Nothing Nothing
 
 suggestExactAction ::
   ExportsMap ->

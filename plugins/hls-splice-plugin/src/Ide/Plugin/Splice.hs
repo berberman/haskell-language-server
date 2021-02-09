@@ -404,7 +404,7 @@ codeAction _ state plId docId ran _ =
                         act <- liftIO $ mkLspCommand plId cmdId title (Just [toJSON params])
                         pure $
                             CACodeAction $
-                                CodeAction title (Just CodeActionRefactorRewrite) Nothing Nothing (Just act)
+                                CodeAction title (Just CodeActionRefactorRewrite) Nothing Nothing (Just act) Nothing Nothing
 
             pure $ maybe mempty List mcmds
     where

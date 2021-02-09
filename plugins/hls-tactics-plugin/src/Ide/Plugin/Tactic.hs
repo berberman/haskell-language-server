@@ -181,8 +181,7 @@ provide tc name _ plId uri range _ = do
   pure
     $ pure
     $ CACodeAction
-    $ CodeAction title (Just CodeActionQuickFix) Nothing Nothing
-    $ Just cmd
+    $ CodeAction title (Just CodeActionQuickFix) Nothing Nothing (Just cmd) Nothing Nothing
 
 
 ------------------------------------------------------------------------------

@@ -106,7 +106,7 @@ codeAction _lf _state _pid (TextDocumentIdentifier uri) _range CodeActionContext
                "-- TODO2 added by Example2 Plugin directly\n"]
       edit  = WorkspaceEdit (Just $ Map.singleton uri $ List tedit) Nothing
     pure $ Right $ List
-        [ CACodeAction $ CodeAction title (Just CodeActionQuickFix) (Just $ List []) (Just edit) Nothing ]
+        [ CACodeAction $ CodeAction title (Just CodeActionQuickFix) (Just $ List []) (Just edit) Nothing Nothing Nothing]
 
 -- ---------------------------------------------------------------------
 

@@ -160,10 +160,10 @@ codeAction _ state plId docId _ context = fmap (fromMaybe errorResult) . runMayb
 
         mkCmdParams methodGroup = [toJSON (AddMinimalMethodsParams uri range (List methodGroup))]
 
-        mkCodeAction title
+        mkCodeAction title cmd
           = CACodeAction
-          . CodeAction title (Just CodeActionQuickFix) (Just (List [])) Nothing
-          . Just
+          $ CodeAction title (Just CodeActionQuickFix) (Just (List [])) Nothing
+            (Just cmd) Nothing Nothing
 
     findClassIdentifier docPath range = do
       (hieAst -> hf, pmap) <- MaybeT . runAction "classplugin" state $ useWithStale GetHieAst docPath

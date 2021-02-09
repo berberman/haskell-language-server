@@ -121,6 +121,7 @@ toAction title uri edit = CodeAction {..}
     _changes = Just $ HashMap.singleton uri $ List [edit]
     _documentChanges = Nothing
     _edit = Just WorkspaceEdit {..}
+    _disabled = Nothing
 
 toRange :: SrcSpan -> Maybe Range
 toRange src

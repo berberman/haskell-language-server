@@ -74,7 +74,7 @@ codeActionProvider _ state _plId docId _ (J.CodeActionContext (J.List diags) _mo
       where
         mkCodeAction pragmaName = do
           let
-            codeAction = J.CACodeAction $ J.CodeAction title (Just J.CodeActionQuickFix) (Just (J.List [])) (Just edit) Nothing
+            codeAction = J.CACodeAction $ J.CodeAction title (Just J.CodeActionQuickFix) (Just (J.List [])) (Just edit) Nothing Nothing Nothing
             title = "Add \"" <> pragmaName <> "\""
             edit = mkPragmaEdit (docId ^. J.uri) pragmaName
           return codeAction

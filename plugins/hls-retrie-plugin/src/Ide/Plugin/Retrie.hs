@@ -190,7 +190,7 @@ provider _a state plId (TextDocumentIdentifier uri) range ca = response $ do
   commands <- lift $
     forM rewrites $ \(title, kind, params) -> do
       c <- mkLspCommand plId (coerce retrieCommandName) title (Just [toJSON params])
-      return $ CodeAction title (Just kind) Nothing Nothing (Just c)
+      return $ CodeAction title (Just kind) Nothing Nothing (Just c) Nothing Nothing
 
   return $ J.List [CACodeAction c | c <- commands]
 
