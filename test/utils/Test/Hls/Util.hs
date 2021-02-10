@@ -228,7 +228,7 @@ xmlFormatter = silent {
 
     reasonAsString :: FailureReason -> String
     reasonAsString NoReason = "no reason given"
-    reasonAsString (Reason x) = x
+    reasonAsString (Test.Hspec.Core.Formatters.Reason x) = x
     reasonAsString (ExpectedButGot Nothing expected got) = "Expected " ++ expected ++ " but got " ++ got
     reasonAsString (ExpectedButGot (Just src) expected got) = src ++ " expected " ++ expected ++ " but got " ++ got
 #if MIN_VERSION_hspec(2,5,0)

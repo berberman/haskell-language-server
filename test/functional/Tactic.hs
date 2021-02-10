@@ -46,7 +46,7 @@ pointRange
 -- | Get the title of a code action.
 codeActionTitle :: CAResult -> Maybe Text
 codeActionTitle CACommand{} = Nothing
-codeActionTitle (CACodeAction(CodeAction title _ _ _ _)) = Just title
+codeActionTitle (CACodeAction(CodeAction title _ _ _ _ _ _)) = Just title
 
 
 tests :: TestTree
