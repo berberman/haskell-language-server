@@ -42,13 +42,16 @@ library
     , directory
     , extra
     , filepath
+    , ghcide                  ^>=1.1.0.0
+    , hls-plugin-api          ^>=1.1.0.0
     , hspec
     , hspec-core
     , lens
+    , lsp                     ==1.1.1.0
     , lsp-test                ==0.13.0.0
     , lsp-types               ^>=1.1
+    , shake
     , tasty
-    , tasty-ant-xml           >=1.1.6
     , tasty-expected-failure
     , tasty-golden
     , tasty-hunit
