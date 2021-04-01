@@ -12,9 +12,6 @@ module Development.IDE.LSP.LanguageServer
     ( runLanguageServer
     ) where
 
-import           Control.Concurrent.Extra              (newBarrier,
-                                                        signalBarrier,
-                                                        waitBarrier)
 import           Control.Concurrent.STM
 import           Control.Monad.Extra
 import           Control.Monad.IO.Class
@@ -23,7 +20,6 @@ import           Data.Aeson                            (Value)
 import           Data.Maybe
 import qualified Data.Set                              as Set
 import qualified Data.Text                             as T
-import qualified Development.IDE.GHC.Util              as Ghcide
 import           Development.IDE.LSP.Server
 import           Development.IDE.Session               (runWithDb)
 import           Ide.Types                             (traceWithSpan)
@@ -59,9 +55,9 @@ runLanguageServer options inH outH getHieDbLoc onConfigurationChange userHandler
     -- These barriers are signaled when the threads reading from these chans exit.
     -- This should not happen but if it does, we will make sure that the whole server
     -- dies and can be restarted instead of losing threads silently.
-    clientMsgBarrier <- newBarrier
+    clientMsgBarrier <- newEmptyMVar
     -- Forcefully exit
-    let exit = signalBarrier clientMsgBarrier ()
+    let exit = void $ tryPutMVar clientMsgBarrier ()
 
     -- The set of requests ids that we have received but not finished processing
     pendingRequests <- newTVarIO Set.empty
@@ -117,7 +113,7 @@ runLanguageServer options inH outH getHieDbLoc onConfigurationChange userHandler
             inH
             outH
             serverDefinition
-        , void $ waitBarrier clientMsgBarrier
+        , void $ readMVar clientMsgBarrier
         ]
 
     where
