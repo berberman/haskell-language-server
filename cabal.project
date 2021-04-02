@@ -4,6 +4,7 @@ packages:
          ./shake-bench
          ./ghcide
          ./lsp-test
+         ./lsp
          ./hls-plugin-api
          ./hls-test-utils
          ./plugins/hls-tactics-plugin
