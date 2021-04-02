@@ -27,7 +27,7 @@ import           Control.Monad.IO.Class
 import           Data.ByteString.Lazy              (ByteString)
 import           Data.Default                      (def)
 import qualified Data.Text                         as T
-import           Development.IDE                   (IdeState, hDuplicateTo')
+import           Development.IDE                   (IdeState, hDuplicateTo', noLogging)
 import           Development.IDE.Main
 import qualified Development.IDE.Main              as Ghcide
 import qualified Development.IDE.Plugin.HLS.GhcIde as Ghcide
@@ -118,6 +118,7 @@ runSessionWithServer' plugin conf sconf caps root s = withLock lock $ keepCurren
           { argsHandleIn = pure inR,
             argsHandleOut = pure outW,
             argsDefaultHlsConfig = conf,
+            argsLogger = pure noLogging,
             argsIdeOptions = \config sessionLoader ->
               let ideOptions = (argsIdeOptions def config sessionLoader) {optTesting = IdeTesting True}
                in ideOptions {optShakeOptions = (optShakeOptions ideOptions) {shakeThreads = 2}},
