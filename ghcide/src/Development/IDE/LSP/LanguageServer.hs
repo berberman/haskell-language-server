@@ -186,7 +186,7 @@ exitHandler exit = LSP.notificationHandler SExit $ const $ do
     (_, ide) <- ask
     -- flush out the Shake session to record a Shake profile if applicable
     liftIO $ logDebug (logger . shakeExtras $ ide) "Received exit message, flushing build session"
-    liftIO $ restartShakeSession (shakeExtras ide) []
+    liftIO $ shakeShut ide
     liftIO exit
 
 modifyOptions :: LSP.Options -> LSP.Options
