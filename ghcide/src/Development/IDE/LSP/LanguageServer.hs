@@ -46,11 +46,12 @@ runLanguageServer
     -> Handle -- input
     -> Handle -- output
     -> (FilePath -> IO FilePath) -- ^ Map root paths to the location of the hiedb for the project
-    -> (IdeState -> Value -> IO (Either T.Text config))
+    -> config
+    -> (config -> Value -> Either T.Text config)
     -> LSP.Handlers (ServerM config)
     -> (LSP.LanguageContextEnv config -> VFSHandle -> Maybe FilePath -> HieDb -> IndexQueue -> IO IdeState)
     -> IO ()
-runLanguageServer options inH outH getHieDbLoc onConfigurationChange userHandlers getIdeState = do
+runLanguageServer options inH outH getHieDbLoc defaultConfig onConfigurationChange userHandlers getIdeState = do
 
     -- These barriers are signaled when the threads reading from these chans exit.
     -- This should not happen but if it does, we will make sure that the whole server
@@ -99,9 +100,8 @@ runLanguageServer options inH outH getHieDbLoc onConfigurationChange userHandler
 
 
     let serverDefinition = LSP.ServerDefinition
-            { LSP.onConfigurationChange = \v -> do
-                (_chan, ide) <- ask
-                liftIO $ onConfigurationChange ide v
+            { LSP.onConfigurationChange = onConfigurationChange
+            , LSP.defaultConfig = defaultConfig
             , LSP.doInitialize = handleInit exit clearReqId waitForCancel clientMsgChan
             , LSP.staticHandlers = asyncHandlers
             , LSP.interpretHandler = \(env, st) -> LSP.Iso (LSP.runLspT env . flip runReaderT (clientMsgChan,st)) liftIO
