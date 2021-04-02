@@ -27,7 +27,7 @@ import           Data.ByteString.Lazy              (ByteString)
 import           Data.Default                      (def)
 import qualified Data.Text                         as T
 import           Development.IDE                   (IdeState, hDuplicateTo',
-                                                    noLogging)
+                                                    )
 import           Development.IDE.Main
 import qualified Development.IDE.Main              as Ghcide
 import qualified Development.IDE.Plugin.HLS.GhcIde as Ghcide
@@ -98,7 +98,7 @@ runSessionWithServer' ::
   FilePath ->
   Session a ->
   IO a
-runSessionWithServer' plugin conf sconf caps root s = silenceStderr $ do
+runSessionWithServer' plugin conf sconf caps root s = do
   (inR, inW) <- createPipe
   (outR, outW) <- createPipe
   -- restore cwd after running the session; otherwise the path to test data will be invalid
@@ -110,17 +110,19 @@ runSessionWithServer' plugin conf sconf caps root s = silenceStderr $ do
           { argsHandleIn = pure inR,
             argsHandleOut = pure outW,
             argsDefaultHlsConfig = conf,
-            argsLogger = pure noLogging,
             argsIdeOptions = \config sessionLoader ->
               let ideOptions = (argsIdeOptions def config sessionLoader) {optTesting = IdeTesting True}
                in ideOptions {optShakeOptions = (optShakeOptions ideOptions) {shakeThreads = 2}},
             argsHlsPlugins = pluginDescToIdePlugins $ plugin ++ Ghcide.descriptors
           }
 
-  x <-
-    runSessionWithHandles inW outR sconf caps root s
-      `finally` setCurrentDirectory cwd
+  x <- runSessionWithHandles inW outR sconf caps root s
   timeout 3 (wait server) >>= \case
     Just () -> pure ()
-    Nothing -> putStrLn "Server does not exit on time, canceling the async task..." >> cancel server
+    Nothing -> do
+      putStrLn "Server does not exit in 3s, canceling the async task..."
+      (t, _) <- duration $ cancel server
+      putStrLn $ "Finishing canceling (took " <> showDuration t <> "s)"
+  setCurrentDirectory cwd
+  sleep 0.05
   pure x
