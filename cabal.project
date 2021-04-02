@@ -3,6 +3,7 @@ packages:
          ./hie-compat
          ./shake-bench
          ./ghcide
+         ./lsp-test
          ./hls-plugin-api
          ./hls-test-utils
          ./plugins/hls-tactics-plugin
