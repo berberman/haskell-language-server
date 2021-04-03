@@ -603,11 +603,11 @@ shakeProfile IdeState{..} = shakeProfileDatabase shakeDb
 
 shakeShut :: IdeState -> IO ()
 shakeShut IdeState{..} = withMVar shakeSession $ \runner -> do
+    stopProgressReporting
     -- Shake gets unhappy if you try to close when there is a running
     -- request so we first abort that.
     void $ cancelShakeSession runner
     shakeClose
-    stopProgressReporting
 
 
 -- | This is a variant of withMVar where the first argument is run unmasked and if it throws
