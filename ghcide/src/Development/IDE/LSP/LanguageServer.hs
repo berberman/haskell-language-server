@@ -53,13 +53,6 @@ runLanguageServer
     -> IO ()
 runLanguageServer options inH outH getHieDbLoc defaultConfig onConfigurationChange userHandlers getIdeState = do
 
-    -- These barriers are signaled when the threads reading from these chans exit.
-    -- This should not happen but if it does, we will make sure that the whole server
-    -- dies and can be restarted instead of losing threads silently.
-    clientMsgBarrier <- newEmptyMVar
-    -- Forcefully exit
-    let exit = void $ tryPutMVar clientMsgBarrier ()
-
     -- The set of requests ids that we have received but not finished processing
     pendingRequests <- newTVarIO Set.empty
     -- The set of requests that have been cancelled and are also in pendingRequests
@@ -93,7 +86,7 @@ runLanguageServer options inH outH getHieDbLoc defaultConfig onConfigurationChan
     let asyncHandlers = mconcat
           [ ideHandlers
           , cancelHandler cancelRequest
-          , exitHandler exit
+          , exitHandler
           ]
           -- Cancel requests are special since they need to be handled
           -- out of order to be useful. Existing handlers are run afterwards.
@@ -102,25 +95,19 @@ runLanguageServer options inH outH getHieDbLoc defaultConfig onConfigurationChan
     let serverDefinition = LSP.ServerDefinition
             { LSP.onConfigurationChange = onConfigurationChange
             , LSP.defaultConfig = defaultConfig
-            , LSP.doInitialize = handleInit exit clearReqId waitForCancel clientMsgChan
+            , LSP.doInitialize = handleInit clearReqId waitForCancel clientMsgChan
             , LSP.staticHandlers = asyncHandlers
             , LSP.interpretHandler = \(env, st) -> LSP.Iso (LSP.runLspT env . flip runReaderT (clientMsgChan,st)) liftIO
             , LSP.options = modifyOptions options
             }
 
-    void $ waitAnyCancel =<< traverse async
-        [ void $ LSP.runServerWithHandles
-            inH
-            outH
-            serverDefinition
-        , void $ readMVar clientMsgBarrier
-        ]
+    void $ LSP.runServerWithHandles inH outH serverDefinition
 
     where
         handleInit
-          :: IO () -> (SomeLspId -> IO ()) -> (SomeLspId -> IO ()) -> Chan ReactorMessage
+          :: (SomeLspId -> IO ()) -> (SomeLspId -> IO ()) -> Chan ReactorMessage
           -> LSP.LanguageContextEnv config -> RequestMessage Initialize -> IO (Either err (LSP.LanguageContextEnv config, IdeState))
-        handleInit exitClientMsg clearReqId waitForCancel clientMsgChan env (RequestMessage _ _ m params) = otTracedHandler "Initialize" (show m) $ \sp -> do
+        handleInit clearReqId waitForCancel clientMsgChan env (RequestMessage _ _ m params) = otTracedHandler "Initialize" (show m) $ \sp -> do
             traceWithSpan sp params
             let root = LSP.resRootPath env
 
@@ -138,7 +125,7 @@ runLanguageServer options inH outH getHieDbLoc defaultConfig onConfigurationChan
             logInfo (ideLogger ide) $ T.pack $ "Registering ide configuration: " <> show initConfig
             registerIdeConfiguration (shakeExtras ide) initConfig
 
-            _ <- flip forkFinally (const exitClientMsg) $ runWithDb dbLoc $ \hiedb hieChan -> do
+            _ <- flip forkFinally (either (\e -> logError (ideLogger ide) (T.pack $ "Unexpected exception in server thread: " <> show e)) (const $ pure ())) $ runWithDb dbLoc $ \hiedb hieChan -> do
               putMVar dbMVar (hiedb,hieChan)
               forever $ do
                 msg <- readChan clientMsgChan
@@ -181,13 +168,12 @@ cancelHandler :: (SomeLspId -> IO ()) -> LSP.Handlers (ServerM c)
 cancelHandler cancelRequest = LSP.notificationHandler SCancelRequest $ \NotificationMessage{_params=CancelParams{_id}} ->
   liftIO $ cancelRequest (SomeLspId _id)
 
-exitHandler :: IO () -> LSP.Handlers (ServerM c)
-exitHandler exit = LSP.notificationHandler SExit $ const $ do
+exitHandler :: LSP.Handlers (ServerM c)
+exitHandler = LSP.notificationHandler SExit $ const $ do
     (_, ide) <- ask
     -- flush out the Shake session to record a Shake profile if applicable
     liftIO $ logDebug (logger . shakeExtras $ ide) "Received exit message, flushing build session"
     liftIO $ shakeShut ide
-    liftIO exit
 
 modifyOptions :: LSP.Options -> LSP.Options
 modifyOptions x = x{ LSP.textDocumentSync   = Just $ tweakTDS origTDS
