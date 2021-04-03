@@ -175,6 +175,7 @@ exitHandler = LSP.notificationHandler SExit $ const $ do
     liftIO $ logDebug (logger . shakeExtras $ ide) "Received exit message, flushing build session"
     liftIO $ shakeShut ide
 
+
 modifyOptions :: LSP.Options -> LSP.Options
 modifyOptions x = x{ LSP.textDocumentSync   = Just $ tweakTDS origTDS
                    }
