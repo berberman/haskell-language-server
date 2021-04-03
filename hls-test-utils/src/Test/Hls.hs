@@ -52,6 +52,7 @@ import           Test.Tasty.ExpectedFailure
 import           Test.Tasty.Golden
 import           Test.Tasty.HUnit
 import           Test.Tasty.Ingredients.Rerun
+import Control.Monad.Primitive (touch)
 
 -- | Run 'defaultMainWithRerun', limiting each single test case running at most 10 minutes
 defaultTestRunner :: TestTree -> IO ()
@@ -126,6 +127,8 @@ runSessionWithServer' plugin conf sconf caps root s = withLock lock $ keepCurren
           }
   x <- runSessionWithHandles inW outR sconf caps root s
   hClose inW
+  touch outW
+  touch outR
   timeout 3 (wait server) >>= \case
     Just () -> pure ()
     Nothing -> do

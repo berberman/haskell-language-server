@@ -60,6 +60,7 @@ library
     , temporary
     , text
     , unordered-containers
+    , primitive
 
   ghc-options:      -Wall
 
