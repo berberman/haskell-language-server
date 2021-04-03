@@ -127,13 +127,13 @@ runSessionWithServer' plugin conf sconf caps root s = withLock lock $ keepCurren
           }
   x <- runSessionWithHandles inW outR sconf caps root s
   hClose inW
-  touch outW
-  touch outR
   timeout 3 (wait server) >>= \case
     Just () -> pure ()
     Nothing -> do
       putStrLn "Server does not exit in 3s, canceling the async task..."
       (t, _) <- duration $ cancel server
       putStrLn $ "Finishing canceling (took " <> showDuration t <> "s)"
+  touch outW
+  touch outR
   sleep 0.2
   pure x
