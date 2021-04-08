@@ -13,7 +13,7 @@ import Utils
 
 
 spec :: Spec
-spec = do
+spec = aroundSessionQueue $ do
   mkTest
     "Produces intros code action"
     "T1.hs" 2 14

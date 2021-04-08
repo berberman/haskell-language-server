@@ -13,7 +13,7 @@ import Utils
 
 
 spec :: Spec
-spec = do
+spec = aroundSessionQueue $ do
   let destructTest = goldenTest Destruct
 
   describe "golden" $ do

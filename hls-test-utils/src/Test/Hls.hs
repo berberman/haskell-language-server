@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
+
 module Test.Hls
   ( module Test.Tasty.HUnit,
     module Test.Tasty,
@@ -92,6 +93,7 @@ keepCurrentDirectory :: IO a -> IO a
 keepCurrentDirectory = bracket getCurrentDirectory setCurrentDirectory . const
 
 {-# NOINLINE lock #-}
+
 -- | Never run in parallel
 lock :: Lock
 lock = unsafePerformIO newLock
@@ -109,28 +111,35 @@ runSessionWithServer' ::
   FilePath ->
   Session a ->
   IO a
-runSessionWithServer' plugin conf sconf caps root s = withLock lock $ keepCurrentDirectory $ silenceStderr $ do
-  (inR, inW) <- createPipe
-  (outR, outW) <- createPipe
-  server <-
-    async $
-      Ghcide.defaultMain
-        def
-          { argsHandleIn = pure inR,
-            argsHandleOut = pure outW,
-            argsDefaultHlsConfig = conf,
-            argsLogger = pure noLogging,
-            argsIdeOptions = \config sessionLoader ->
-              let ideOptions = (argsIdeOptions def config sessionLoader) {optTesting = IdeTesting True}
-               in ideOptions {optShakeOptions = (optShakeOptions ideOptions) {shakeThreads = 2}},
-            argsHlsPlugins = pluginDescToIdePlugins $ plugin ++ Ghcide.descriptors
-          }
-  x <- runSessionWithHandles inW outR sconf caps root s
-  hClose inW
-  timeout 3 (wait server) >>= \case
-    Just () -> pure ()
-    Nothing -> do
-      putStrLn "Server does not exit in 3s, canceling the async task..."
-      (t, _) <- duration $ cancel server
-      putStrLn $ "Finishing canceling (took " <> showDuration t <> "s)"
-  pure x
+runSessionWithServer' plugin conf sconf caps root s =
+  withLock lock $
+    keepCurrentDirectory $
+      silenceStderr $
+        bracket spwanServerWithPipes cleanup $ \(_, inW, outR) ->
+          runSessionWithHandles inW outR sconf caps root s
+  where
+    spwanServerWithPipes = do
+      (inR, inW) <- createPipe
+      (outR, outW) <- createPipe
+      a <-
+        async $
+          Ghcide.defaultMain
+            def
+              { argsHandleIn = pure inR,
+                argsHandleOut = pure outW,
+                argsDefaultHlsConfig = conf,
+                argsLogger = pure noLogging,
+                argsIdeOptions = \config sessionLoader ->
+                  let ideOptions = (argsIdeOptions def config sessionLoader) {optTesting = IdeTesting True}
+                   in ideOptions {optShakeOptions = (optShakeOptions ideOptions) {shakeThreads = 2}},
+                argsHlsPlugins = pluginDescToIdePlugins $ plugin ++ Ghcide.descriptors
+              }
+      pure (a, inW, outR)
+    cleanup (a, inW, _outR) = do
+      hClose inW
+      timeout 3 (wait a) >>= \case
+        Just () -> pure ()
+        Nothing -> do
+          putStrLn "Server does not exit in 3s, canceling the async task..."
+          (t, _) <- duration $ cancel a
+          putStrLn $ "Finishing canceling (took " <> showDuration t <> "s)"

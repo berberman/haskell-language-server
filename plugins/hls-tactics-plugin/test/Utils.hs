@@ -27,9 +27,9 @@ import           Language.LSP.Types.Lens hiding (actions, applyEdit, capabilitie
 import           System.Directory (doesFileExist)
 import           System.FilePath
 import           Test.Hls
+import           Test.Hls.SessionQueue
 import           Test.Hspec
 import           Test.Hspec.Formatters (FailureReason(ExpectedButGot))
-import           Test.Tasty.HUnit (Assertion, HUnitFailure(..))
 import           Wingman.FeatureSet (FeatureSet, allFeatures, prettyFeatureSet)
 import           Wingman.LanguageServer (mkShowMessageParams)
 import           Wingman.Types
@@ -68,9 +68,9 @@ mkTest
          , TacticCommand  -- An expected command ...
          , Text           -- ... for this variable
          ) -- ^ A collection of (un)expected code actions.
-    -> SpecWith (Arg Bool)
-mkTest name fp line col ts = it name $ do
-  runSessionWithServer plugin tacticPath $ do
+    -> SpecWith SessionQueue
+mkTest name fp line col ts = it name $ \chan -> do
+  enqueue chan $ do
     setFeatureSet allFeatures
     doc <- openDoc fp "haskell"
     _ <- waitForDiagnostics
@@ -106,10 +106,10 @@ mkGoldenTest
     -> Int
     -> Int
     -> FilePath
-    -> SpecWith ()
+    -> SpecWith SessionQueue
 mkGoldenTest eq features tc occ line col input =
-  it (input <> " (golden)") $ do
-    runSessionWithServer plugin tacticPath $ do
+  it (input <> " (golden)") $ \chan ->
+    enqueue chan $ do
       setFeatureSet features
       doc <- openDoc input "haskell"
       _ <- waitForDiagnostics
@@ -134,10 +134,10 @@ mkShowMessageTest
     -> Int
     -> FilePath
     -> UserFacingMessage
-    -> SpecWith ()
+    -> SpecWith SessionQueue
 mkShowMessageTest features tc occ line col input ufm =
-  it (input <> " (golden)") $ do
-    runSessionWithServer plugin tacticPath $ do
+  it (input <> " (golden)") $ \chan ->
+    enqueue chan $ do
       setFeatureSet features
       doc <- openDoc input "haskell"
       _ <- waitForDiagnostics
@@ -149,10 +149,10 @@ mkShowMessageTest features tc occ line col input ufm =
       liftIO $ err `shouldBe` mkShowMessageParams ufm
 
 
-goldenTest :: TacticCommand -> Text -> Int -> Int -> FilePath -> SpecWith ()
+goldenTest :: TacticCommand -> Text -> Int -> Int -> FilePath -> SpecWith SessionQueue
 goldenTest = mkGoldenTest shouldBe allFeatures
 
-goldenTestNoWhitespace :: TacticCommand -> Text -> Int -> Int -> FilePath -> SpecWith ()
+goldenTestNoWhitespace :: TacticCommand -> Text -> Int -> Int -> FilePath -> SpecWith SessionQueue
 goldenTestNoWhitespace = mkGoldenTest shouldBeIgnoringSpaces allFeatures
 
 
@@ -202,3 +202,5 @@ executeCommandWithResp cmd = do
       execParams = ExecuteCommandParams Nothing (cmd ^. command) args
   request SWorkspaceExecuteCommand execParams
 
+aroundSessionQueue :: SpecWith SessionQueue -> Spec
+aroundSessionQueue = aroundAll $ runWithSession plugin tacticPath

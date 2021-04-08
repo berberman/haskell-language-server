@@ -14,7 +14,7 @@ import           Utils
 
 
 spec :: Spec
-spec = do
+spec = aroundSessionQueue $ do
   let useTest = goldenTest UseDataCon
 
   describe "provider" $ do

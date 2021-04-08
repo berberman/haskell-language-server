@@ -14,7 +14,7 @@ import Wingman.FeatureSet (allFeatures)
 
 
 spec :: Spec
-spec = do
+spec = aroundSessionQueue $ do
   let refineTest = goldenTest Refine ""
 
   describe "golden" $ do

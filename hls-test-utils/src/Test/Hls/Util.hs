@@ -29,6 +29,7 @@ module Test.Hls.Util
     , waitForDiagnosticsFromSource
     , waitForDiagnosticsFromSourceWithTimeout
     , withCurrentDirectoryInTmp
+    , aroundAll
   )
 where
 
@@ -60,7 +61,8 @@ import           Test.Tasty.ExpectedFailure (ignoreTestBecause, expectFailBecaus
 import           Test.Tasty.HUnit (Assertion, assertFailure, (@?=))
 import           Text.Blaze.Renderer.String (renderMarkup)
 import           Text.Blaze.Internal hiding (null)
-import System.Info.Extra (isWindows, isMac)
+import           System.Info.Extra (isWindows, isMac)
+import           Test.Hspec.Core.Hooks (aroundAll)
 
 codeActionSupportCaps :: C.ClientCapabilities
 codeActionSupportCaps = def { C._textDocument = Just textDocumentCaps }

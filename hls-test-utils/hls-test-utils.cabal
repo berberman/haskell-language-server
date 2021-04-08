@@ -29,6 +29,7 @@ source-repository head
 library
   exposed-modules:
     Test.Hls
+    Test.Hls.SessionQueue
     Test.Hls.Util
 
   hs-source-dirs:   src
@@ -52,6 +53,7 @@ library
     , lsp-test                ==0.14.0.0
     , lsp-types               ^>=1.2
     , shake
+    , stm
     , tasty
     , tasty-expected-failure
     , tasty-golden
