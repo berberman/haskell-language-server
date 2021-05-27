@@ -36,18 +36,18 @@ examples:
 
 # The set of experiments to execute
 experiments:
-    - "edit"
-    - "hover"
-    - "hover after edit"
+#     - "edit"
+#     - "hover"
+#     - "hover after edit"
     # - "hover after cradle edit"
-    - "getDefinition"
-    - "getDefinition after edit"
-    - "completions"
-    - "completions after edit"
+#     - "getDefinition"
+#     - "getDefinition after edit"
+#     - "completions"
+#     - "completions after edit"
     - "code actions"
     - "code actions after edit"
-    - "code actions after cradle edit"
-    - "documentSymbols after edit"
+#     - "code actions after cradle edit"
+#     - "documentSymbols after edit"
 
 # An ordered list of versions to analyze
 versions:

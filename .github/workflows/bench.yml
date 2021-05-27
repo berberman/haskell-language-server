@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - '**'
+  push:
 
 jobs:
   pre_job:
