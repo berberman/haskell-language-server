@@ -26,6 +26,7 @@ descriptors =
     CodeAction.typeSigsPluginDescriptor "ghcide-code-actions-type-signatures",
     CodeAction.bindingsPluginDescriptor "ghcide-code-actions-bindings",
     CodeAction.fillHolePluginDescriptor "ghcide-code-actions-fill-holes",
+    CodeAction.hideShadowPluginDescriptor "ghcide-code-actions-hide-shadow",
     Completions.descriptor "ghcide-completions",
     TypeLenses.descriptor "ghcide-type-lenses",
     Notifications.descriptor "ghcide-core"

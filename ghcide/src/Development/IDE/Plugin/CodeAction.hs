@@ -11,7 +11,8 @@ module Development.IDE.Plugin.CodeAction
     iePluginDescriptor,
     typeSigsPluginDescriptor,
     bindingsPluginDescriptor,
-    fillHolePluginDescriptor
+    fillHolePluginDescriptor,
+    hideShadowPluginDescriptor
     -- * For testing
     , matchRegExMultipleImports
     ) where
@@ -109,7 +110,6 @@ iePluginDescriptor plId =
           , wrap suggestNewImport
           , wrap suggestModuleTypo
           , wrap suggestFixConstructorImport
-          , wrap suggestHideShadow
           , wrap suggestExportUnusedTopBinding
           ]
           plId
@@ -136,6 +136,9 @@ bindingsPluginDescriptor =
 
 fillHolePluginDescriptor :: PluginId -> PluginDescriptor IdeState
 fillHolePluginDescriptor = mkGhcideCAPlugin $ wrap suggestFillHole
+
+hideShadowPluginDescriptor :: PluginId -> PluginDescriptor IdeState
+hideShadowPluginDescriptor = mkGhcideCAPlugin $ wrap suggestHideShadow
 
 -------------------------------------------------------------------------------------------------
 
